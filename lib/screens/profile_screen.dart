@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_clone/models/user_model.dart';
 import 'package:instagram_clone/utilities/constants.dart';
@@ -27,7 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             );
           } else if (!snapshot.hasData) {
             return Center(
-              child: CircularProgressIndicator(),
+              child: LinearProgressIndicator(backgroundColor: Colors.blue[200], valueColor: AlwaysStoppedAnimation(Colors.blue),),
             );
           }
           User user = User.fromDoc(snapshot.data);
@@ -39,10 +40,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: <Widget>[
                     CircleAvatar(
                       radius: 48,
-                      backgroundColor: Colors.white,
-                      backgroundImage: NetworkImage(
-                        'https://images.unsplash.com/photo-1511242962912-ba18dcf39f30?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&q=60',
-                      ),
+                      backgroundColor: Colors.grey,
+                      backgroundImage: user.profileImageUrl.isEmpty
+                          ? AssetImage('assets/images/placeholder.jpeg')
+                          : CachedNetworkImageProvider(user.profileImageUrl),
                     ),
                     Expanded(
                       child: Column(
@@ -114,7 +115,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                               color: Colors.blue,
                               textColor: Colors.white,
-                              onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => EditProfileScreen(user: user))),
+                              onPressed: () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                      builder: (_) =>
+                                          EditProfileScreen(user: user))),
                             ),
                           ),
                         ],

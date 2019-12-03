@@ -1,6 +1,11 @@
+import 'dart:io';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:instagram_clone/models/user_model.dart';
 import 'package:instagram_clone/services/database_service.dart';
+import 'package:instagram_clone/services/storage_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   static const routeName = 'edit-profile';
@@ -14,23 +19,56 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  String _name = ''; 
+  String _name = '';
   String _bio = '';
+  File _profileImage;
+  bool _isLoading = false;
 
- 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-     _name = widget.user.name;
+    _name = widget.user.name;
     _bio = widget.user.bio;
   }
 
-  _submit() {
+  _handleImageFromGallery() async {
+    File imageFile = await ImagePicker.pickImage(source: ImageSource.gallery);
+    if (imageFile != null) {
+      setState(() {
+        _profileImage = imageFile;
+      });
+    }
+  }
+
+  _displayProfileImage() {
+    if (_profileImage == null) {
+      if (widget.user.profileImageUrl.isEmpty) {
+        return AssetImage('assets/images/placeholder.jpeg');
+      } else {
+        return CachedNetworkImageProvider(widget.user.profileImageUrl);
+      }
+    } else {
+      return FileImage(_profileImage);
+    }
+  }
+
+  _submit() async {
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save();
+      setState(() {
+        _isLoading = true;
+      });
       // update user in database
       String _profileImageUrl = '';
+
+      if (_profileImage == null) {
+        _profileImageUrl = widget.user.profileImageUrl;
+      } else {
+        _profileImageUrl = await StorageService.uploadUserProfileImage(
+            widget.user.profileImageUrl, _profileImage);
+      }
+
       User user = User(
         id: widget.user.id,
         name: _name,
@@ -43,22 +81,30 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: Text(
-          'Edit Profile',
-          style: TextStyle(color: Colors.black),
+        title: Padding(
+          padding: EdgeInsets.fromLTRB(MediaQuery.of(context).size.width * 0.165, 0, 0, 0),
+          child: Text(
+            'Edit Profile',
+            style: TextStyle(color: Colors.black),
+          ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Container(
-          height: MediaQuery.of(context).size.height,
-          child: Padding(
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: ListView(children: <Widget>[
+          _isLoading
+              ? LinearProgressIndicator(
+                  backgroundColor: Colors.blue[200],
+                  valueColor: AlwaysStoppedAnimation(Colors.blue),
+                )
+              : SizedBox.shrink(),
+          Padding(
             padding: const EdgeInsets.all(30.0),
             child: Form(
               key: _formKey,
@@ -66,11 +112,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 children: <Widget>[
                   CircleAvatar(
                     radius: 60,
-                    backgroundImage: NetworkImage(
-                        'https://images.unsplash.com/photo-1511242962912-ba18dcf39f30?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=500&q=60'),
+                    backgroundColor: Colors.grey,
+                    backgroundImage: _displayProfileImage(),
                   ),
                   FlatButton(
-                    onPressed: () => print('change profile image'),
+                    onPressed: _handleImageFromGallery,
                     child: Text(
                       'Change Profile Image',
                       style: TextStyle(
@@ -130,7 +176,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
           ),
-        ),
+        ]),
       ),
     );
   }
