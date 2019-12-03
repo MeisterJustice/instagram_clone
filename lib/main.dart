@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:instagram_clone/screens/edit_profile_screen.dart';
 import 'package:instagram_clone/screens/feed_screen.dart';
 import 'package:instagram_clone/screens/home_screen.dart';
 import 'package:instagram_clone/screens/login_screen.dart';
@@ -8,13 +9,14 @@ import 'package:instagram_clone/screens/signup_screen.dart';
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-
   Widget _getScreenRouteName() {
     return StreamBuilder<FirebaseUser>(
       stream: FirebaseAuth.instance.onAuthStateChanged,
       builder: (BuildContext context, snapshot) {
         if (snapshot.hasData) {
-          return HomeScreen();
+          return HomeScreen(
+            userId: snapshot.data.uid,
+          );
         } else {
           return LoginScreen();
         }
@@ -27,11 +29,17 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Instagram Clone',
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primaryIconTheme: Theme.of(context).primaryIconTheme.copyWith(
+              color: Colors.black,
+            ),
+      ),
       home: _getScreenRouteName(),
       routes: {
         LoginScreen.routeName: (context) => LoginScreen(),
         SignUpScreen.routeName: (context) => SignUpScreen(),
-        FeedScreen.routeName: (context) => FeedScreen()
+        FeedScreen.routeName: (context) => FeedScreen(),
+        EditProfileScreen.routeName: (context) => EditProfileScreen(),
       },
     );
   }
