@@ -17,18 +17,17 @@ class _SearchScreenState extends State<SearchScreen> {
   _buildUserTile(User user) {
     return ListTile(
       leading: CircleAvatar(
-        radius: 20,
+        radius: 20.0,
         backgroundImage: user.profileImageUrl.isEmpty
-            ? AssetImage('/assets/images/placeholder.jpeg')
-            : CachedNetworkImageProvider(
-                user.profileImageUrl,
-              ),
+            ? AssetImage('assets/images/placeholder.jpeg')
+            : CachedNetworkImageProvider(user.profileImageUrl),
       ),
       title: Text(user.name),
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => ProfileScreen(
+            // currentUserId: Provider.of<UserData>(context).currentUserId,
             userId: user.id,
           ),
         ),
@@ -52,18 +51,19 @@ class _SearchScreenState extends State<SearchScreen> {
         title: TextField(
           controller: _searchController,
           decoration: InputDecoration(
-            contentPadding: EdgeInsets.symmetric(vertical: 15),
+            contentPadding: EdgeInsets.symmetric(vertical: 15.0),
             border: InputBorder.none,
             hintText: 'Search',
             prefixIcon: Icon(
               Icons.search,
-              size: 30,
+              size: 30.0,
             ),
             suffixIcon: IconButton(
-                icon: Icon(
-                  Icons.clear,
-                ),
-                onPressed: () => _clearSearch),
+              icon: Icon(
+                Icons.clear,
+              ),
+              onPressed: _clearSearch,
+            ),
             filled: true,
           ),
           onSubmitted: (input) {
@@ -77,7 +77,7 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
       body: _users == null
           ? Center(
-              child: Text('Search For a User'),
+              child: Text('Search for a user'),
             )
           : FutureBuilder(
               future: _users,
@@ -89,7 +89,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 }
                 if (snapshot.data.documents.length == 0) {
                   return Center(
-                    child: Text('No Users Found'),
+                    child: Text('No users found! Please try again.'),
                   );
                 }
                 return ListView.builder(
