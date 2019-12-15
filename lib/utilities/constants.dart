@@ -5,3 +5,4 @@ final _firestore = Firestore.instance;
 final storageRef = FirebaseStorage.instance.ref();
 
 final usersRef = _firestore.collection('users');
+final postRef = _firestore.collection('posts');
