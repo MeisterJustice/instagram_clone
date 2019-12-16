@@ -1,20 +1,123 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:instagram_clone/models/user_data.dart';
 import 'package:instagram_clone/models/user_model.dart';
+import 'package:instagram_clone/services/database_service.dart';
 import 'package:instagram_clone/utilities/constants.dart';
+import 'package:provider/provider.dart';
 
 import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String userId;
+  final String currentUserId;
 
-  ProfileScreen({this.userId});
+  ProfileScreen({this.userId, this.currentUserId});
 
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  bool isFollowing = false;
+  int followerCount = 0;
+  int followingCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _setupFollowers();
+    _setupFollowing();
+    _setupIsFollowing();
+  }
+
+  _setupIsFollowing() async {
+    bool isFollowingUser = await DatabaseService.isFollowingUser(
+      currentUserId: widget.currentUserId,
+      userId: widget.userId,
+    );
+    setState(() {
+      isFollowing = isFollowingUser;
+    });
+  }
+
+  _setupFollowers() async {
+    int userFollowerCount = await DatabaseService.numFollowers(widget.userId);
+    setState(() {
+      followerCount = userFollowerCount;
+    });
+  }
+
+  _setupFollowing() async {
+    int userFollowingCount = await DatabaseService.numFollowing(widget.userId);
+    setState(() {
+      followingCount = userFollowingCount;
+    });
+  }
+
+  _followOrUnfollow() {
+    if (isFollowing) {
+      _unFollowUser();
+    } else {
+      _followUser();
+    }
+  }
+
+  _unFollowUser() {
+    DatabaseService.unFollowUser(
+      currentUserId: widget.currentUserId,
+      userId: widget.userId,
+    );
+    setState(() {
+      isFollowing = false;
+      followerCount--;
+    });
+  }
+
+  _followUser() {
+    DatabaseService.followUser(
+      currentUserId: widget.currentUserId,
+      userId: widget.userId,
+    );
+    setState(() {
+      isFollowing = true;
+      followerCount++;
+    });
+  }
+
+  _displayButton(User user) {
+    return user.id == Provider.of<UserData>(context).currentUserId
+        ? Container(
+            width: 190,
+            child: FlatButton(
+              child: Text(
+                'Edit Profile',
+                style: TextStyle(
+                  fontSize: 18,
+                ),
+              ),
+              color: Colors.blue,
+              textColor: Colors.white,
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => EditProfileScreen(user: user))),
+            ),
+          )
+        : Container(
+            width: 190,
+            child: FlatButton(
+              child: Text(
+                isFollowing ? 'Unfollow' : 'Follow',
+                style: TextStyle(
+                  fontSize: 18,
+                ),
+              ),
+              color: isFollowing ? Colors.grey[200] : Colors.blue,
+              textColor: isFollowing ? Colors.black : Colors.white,
+              onPressed: _followOrUnfollow,
+            ),
+          );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,13 +139,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: FutureBuilder(
         future: usersRef.document(widget.userId).get(),
         builder: (BuildContext context, AsyncSnapshot snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (!snapshot.hasData) {
             return Center(
-              child: CircularProgressIndicator(),
-            );
-          } else if (!snapshot.hasData) {
-            return Center(
-              child: LinearProgressIndicator(backgroundColor: Colors.blue[200], valueColor: AlwaysStoppedAnimation(Colors.blue),),
+              child: LinearProgressIndicator(
+                backgroundColor: Colors.blue[200],
+                valueColor: AlwaysStoppedAnimation(Colors.blue),
+              ),
             );
           }
           User user = User.fromDoc(snapshot.data);
@@ -85,7 +187,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Column(
                                 children: <Widget>[
                                   Text(
-                                    '1678',
+                                    followerCount.toString(),
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.w600,
@@ -102,7 +204,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Column(
                                 children: <Widget>[
                                   Text(
-                                    '207',
+                                    followingCount.toString(),
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.w600,
@@ -118,23 +220,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                             ],
                           ),
-                          Container(
-                            width: 190,
-                            child: FlatButton(
-                              child: Text(
-                                'Edit Profile',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                ),
-                              ),
-                              color: Colors.blue,
-                              textColor: Colors.white,
-                              onPressed: () => Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                      builder: (_) =>
-                                          EditProfileScreen(user: user))),
-                            ),
-                          ),
+                          _displayButton(user),
                         ],
                       ),
                     ),
