@@ -19,9 +19,9 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  bool isFollowing = false;
-  int followerCount = 0;
-  int followingCount = 0;
+  bool _isFollowing = false;
+  int _followerCount = 0;
+  int _followingCount = 0;
 
   @override
   void initState() {
@@ -37,40 +37,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
       userId: widget.userId,
     );
     setState(() {
-      isFollowing = isFollowingUser;
+      _isFollowing = isFollowingUser;
     });
   }
 
   _setupFollowers() async {
     int userFollowerCount = await DatabaseService.numFollowers(widget.userId);
     setState(() {
-      followerCount = userFollowerCount;
+      _followerCount = userFollowerCount;
     });
   }
 
   _setupFollowing() async {
     int userFollowingCount = await DatabaseService.numFollowing(widget.userId);
     setState(() {
-      followingCount = userFollowingCount;
+      _followingCount = userFollowingCount;
     });
   }
 
   _followOrUnfollow() {
-    if (isFollowing) {
-      _unFollowUser();
+    if (_isFollowing) {
+      _unfollowUser();
     } else {
       _followUser();
     }
   }
 
-  _unFollowUser() {
-    DatabaseService.unFollowUser(
+  _unfollowUser() {
+    DatabaseService.unfollowUser(
       currentUserId: widget.currentUserId,
       userId: widget.userId,
     );
     setState(() {
-      isFollowing = false;
-      followerCount--;
+      _isFollowing = false;
+      _followerCount--;
     });
   }
 
@@ -80,8 +80,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       userId: widget.userId,
     );
     setState(() {
-      isFollowing = true;
-      followerCount++;
+      _isFollowing = true;
+      _followerCount++;
     });
   }
 
@@ -106,13 +106,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             width: 190,
             child: FlatButton(
               child: Text(
-                isFollowing ? 'Unfollow' : 'Follow',
+                _isFollowing ? 'Unfollow' : 'Follow',
                 style: TextStyle(
                   fontSize: 18,
                 ),
               ),
-              color: isFollowing ? Colors.grey[200] : Colors.blue,
-              textColor: isFollowing ? Colors.black : Colors.white,
+              color: _isFollowing ? Colors.grey[200] : Colors.blue,
+              textColor: _isFollowing ? Colors.black : Colors.white,
               onPressed: _followOrUnfollow,
             ),
           );
@@ -187,7 +187,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Column(
                                 children: <Widget>[
                                   Text(
-                                    followerCount.toString(),
+                                    _followerCount.toString(),
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.w600,
@@ -204,7 +204,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Column(
                                 children: <Widget>[
                                   Text(
-                                    followingCount.toString(),
+                                    _followingCount.toString(),
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.w600,

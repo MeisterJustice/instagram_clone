@@ -29,13 +29,13 @@ class DatabaseService {
   }
 
   static void followUser({String currentUserId, String userId}) {
-    // add user to current user's following collection
+    // Add user to current user's following collection
     followingRef
         .document(currentUserId)
         .collection('userFollowing')
         .document(userId)
         .setData({});
-    // add current user to user's following collection
+    // Add current user to user's followers collection
     followersRef
         .document(userId)
         .collection('userFollowers')
@@ -43,8 +43,8 @@ class DatabaseService {
         .setData({});
   }
 
-  static void unFollowUser({String currentUserId, String userId}) {
-    // remove user to current user's following collection
+  static void unfollowUser({String currentUserId, String userId}) {
+    // Remove user from current user's following collection
     followingRef
         .document(currentUserId)
         .collection('userFollowing')
@@ -55,7 +55,7 @@ class DatabaseService {
         doc.reference.delete();
       }
     });
-    // remove current user to user's following collection
+    // Remove current user from user's followers collection
     followersRef
         .document(userId)
         .collection('userFollowers')
@@ -78,19 +78,19 @@ class DatabaseService {
     return followingDoc.exists;
   }
 
-  static Future<int> numFollowers(String userId) async {
-    QuerySnapshot followersSnapshot = await followersRef
-        .document(userId)
-        .collection('userFollowers')
-        .getDocuments();
-    return followersSnapshot.documents.length;
-  }
-
   static Future<int> numFollowing(String userId) async {
     QuerySnapshot followingSnapshot = await followingRef
         .document(userId)
         .collection('userFollowing')
         .getDocuments();
     return followingSnapshot.documents.length;
+  }
+
+  static Future<int> numFollowers(String userId) async {
+    QuerySnapshot followersSnapshot = await followersRef
+        .document(userId)
+        .collection('userFollowers')
+        .getDocuments();
+    return followersSnapshot.documents.length;
   }
 }
