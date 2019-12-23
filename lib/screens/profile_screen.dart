@@ -141,10 +141,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           if (!snapshot.hasData) {
             return Center(
-              child: LinearProgressIndicator(
-                backgroundColor: Colors.blue[200],
-                valueColor: AlwaysStoppedAnimation(Colors.blue),
-              ),
+              child: CircularProgressIndicator(),
             );
           }
           User user = User.fromDoc(snapshot.data);
